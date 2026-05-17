@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>방울 LP Collection</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #111;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Malgun Gothic', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* 상단 바 */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(20,20,20,0.95);
+      backdrop-filter: blur(20px);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 0.5px solid #2a2a2a;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: #e8184a; }
+
+    .count-badge {
+      background: #e8184a;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      width: 14px;
+      height: 14px;
+    }
+
+    .search-input {
+      background: #2a2a2a;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px 8px 32px;
+      color: #fff;
+      font-size: 14px;
+      width: 220px;
+      outline: none;
+    }
+
+    .search-input::placeholder { color: #666; }
+
+    /* 장르 탭 */
+    .genre-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 14px 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      border-bottom: 0.5px solid #1e1e1e;
+    }
+
+    .genre-tabs::-webkit-scrollbar { display: none; }
+
+    .genre-tab {
+      background: #2a2a2a;
+      color: #aaa;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .genre-tab:hover { background: #333; color: #fff; }
+    .genre-tab.active { background: #e8184a; color: #fff; }
+
+    /* 로딩 */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 60vh;
+      gap: 16px;
+      color: #666;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top-color: #e8184a;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 갤러리 그리드 */
+    .gallery {
+      padding: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      letter-spacing: -0.3px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .card:hover { transform: scale(1.04); }
+
+    .card-img {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #222;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .card-img-placeholder {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1a1a2e, #2a1a2e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      font-size: 36px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #e0e0e0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.4;
+    }
+
+    .card-artist {
+      font-size: 11px;
+      color: #777;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .card-meta {
+      font-size: 10px;
+      color: #444;
+      margin-top: 3px;
+    }
+
+    /* 빈 상태 */
+    .empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 40vh;
+      color: #555;
+      gap: 8px;
+    }
+
+    .empty-icon { font-size: 48px; }
+    .empty-text { font-size: 16px; }
+
+    /* 모달 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: #1c1c1e;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #333;
+      border: none;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-img {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: #222;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .modal-artist {
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 16px;
+    }
+
+    .modal-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .info-item label {
+      font-size: 10px;
+      color: #666;
+      display: block;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-item span {
+      font-size: 13px;
+      color: #ddd;
+    }
+
+    /* 하단 상태바 */
+    .statusbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(20,20,20,0.95);
+      backdrop-filter: blur(20px);
+      border-top: 0.5px solid #2a2a2a;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .statusbar-dot {
+      width: 6px;
+      height: 6px;
+      background: #e8184a;
+      border-radius: 50%;
+    }
+
+    .statusbar-text {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .pb { padding-bottom: 60px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">방울 <span>LP</span></div>
+    <span class="count-badge" id="countBadge">로딩중...</span>
+  </div>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input class="search-input" type="text" placeholder="앨범, 아티스트 검색..." id="searchInput" oninput="filterAlbums()">
+  </div>
+</div>
+
+<div class="genre-tabs" id="genreTabs">
+  <button class="genre-tab active" onclick="setGenre(this,'전체')">전체</button>
+  <button class="genre-tab" onclick="setGenre(this,'Classical')">Classical</button>
+  <button class="genre-tab" onclick="setGenre(this,'Jazz')">Jazz</button>
+  <button class="genre-tab" onclick="setGenre(this,'Pop')">Pop</button>
+  <button class="genre-tab" onclick="setGenre(this,'Rock')">Rock</button>
+  <button class="genre-tab" onclick="setGenre(this,'Blues')">Blues</button>
+  <button class="genre-tab" onclick="setGenre(this,'Opera')">Opera</button>
+</div>
+
+<div id="loadingEl" class="loading">
+  <div class="spinner"></div>
+  <div>컬렉션 불러오는 중...</div>
+</div>
+
+<div class="gallery pb" id="gallery" style="display:none">
+  <div class="section-title" id="sectionTitle">전체 컬렉션</div>
+  <div class="grid" id="albumGrid"></div>
+  <div class="empty" id="emptyEl" style="display:none">
+    <div class="empty-icon">🎵</div>
+    <div class="empty-text">검색 결과가 없어요</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <img class="modal-img" id="modalImg" src="" alt="">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-artist" id="modalArtist"></div>
+    <div class="modal-info" id="modalInfo"></div>
+  </div>
+</div>
+
+<div class="statusbar">
+  <div class="statusbar-dot"></div>
+  <div class="statusbar-text">물방울치과보철과치과의원 LP Collection</div>
+</div>
+
+<script>
+const NOTION_KEY = process.env.NOTION_KEY || '';
+const NOTION_DB = '35539a1f622d80bdb7f0e0e7f374543b';
+
+let allAlbums = [];
+let currentGenre = '전체';
+
+async function fetchAllAlbums() {
+  let albums = [];
+  let cursor = null;
+  let hasMore = true;
+
+  while (hasMore) {
+    const body = {
+      database_id: NOTION_DB,
+      page_size: 100,
+      sorts: [{ property: '분류번호', direction: 'ascending' }]
+    };
+    if (cursor) body.start_cursor = cursor;
+
+    const res = await fetch('/api/notion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+    if (!data.results) break;
+
+    for (const page of data.results) {
+      const props = page.properties;
+      const get = (key, type) => {
+        const p = props[key];
+        if (!p) return '';
+        if (type === 'title') return p.title?.[0]?.plain_text || '';
+        if (type === 'rich_text') return p.rich_text?.[0]?.plain_text || '';
+        if (type === 'number') return p.number || '';
+        if (type === 'select') return p.select?.name || '';
+        return '';
+      };
+
+      albums.push({
+        id: page.id,
+        title: get('타이틀', 'title'),
+        num: get('분류번호', 'rich_text'),
+        genre: get('장르', 'rich_text'),
+        composer: get('작곡자', 'rich_text'),
+        performer: get('연주자', 'rich_text'),
+        orchestra: get('연주단체', 'rich_text'),
+        conductor: get('지휘자', 'rich_text'),
+        label: get('레이블', 'rich_text'),
+        serial: get('시리얼번호', 'rich_text'),
+        year: get('발매년도', 'number'),
+        rack: get('랙위치', 'select'),
+        memo: get('메모', 'rich_text'),
+        cover: page.cover?.external?.url || page.cover?.file?.url || ''
+      });
+    }
+
+    hasMore = data.has_more;
+    cursor = data.next_cursor;
+  }
+
+  return albums;
+}
+
+function renderGrid(albums) {
+  const grid = document.getElementById('albumGrid');
+  const empty = document.getElementById('emptyEl');
+  grid.innerHTML = '';
+
+  if (albums.length === 0) {
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+
+  albums.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.onclick = () => openModal(a);
+
+    const imgEl = a.cover
+      ? `<img class="card-img" src="${a.cover}" alt="${a.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const placeholder = `<div class="card-img-placeholder" ${a.cover ? 'style="display:none"' : ''}>🎵</div>`;
+
+    card.innerHTML = `
+      ${imgEl}${placeholder}
+      <div class="card-title">${a.title || '제목 없음'}</div>
+      <div class="card-artist">${a.composer || a.performer || a.orchestra || ''}</div>
+      <div class="card-meta">${a.num}${a.rack ? ' · ' + a.rack : ''}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  return allAlbums.filter(a => {
+    const matchGenre = currentGenre === '전체' || a.genre === currentGenre;
+    const matchSearch = !q || [a.title, a.composer, a.performer, a.orchestra, a.label]
+      .some(v => v && v.toLowerCase().includes(q));
+    return matchGenre && matchSearch;
+  });
+}
+
+function filterAlbums() {
+  const filtered = getFiltered();
+  document.getElementById('countBadge').textContent = filtered.length.toLocaleString();
+  renderGrid(filtered);
+}
+
+function setGenre(el, genre) {
+  document.querySelectorAll('.genre-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentGenre = genre;
+  document.getElementById('sectionTitle').textContent = genre === '전체' ? '전체 컬렉션' : genre;
+  filterAlbums();
+}
+
+function openModal(a) {
+  document.getElementById('modalImg').src = a.cover || '';
+  document.getElementById('modalImg').style.display = a.cover ? 'block' : 'none';
+  document.getElementById('modalTitle').textContent = a.title || '제목 없음';
+  document.getElementById('modalArtist').textContent = [a.composer, a.performer, a.orchestra].filter(Boolean).join(' / ');
+
+  const info = [
+    { label: '분류번호', value: a.num },
+    { label: '장르', value: a.genre },
+    { label: '지휘자', value: a.conductor },
+    { label: '레이블', value: a.label },
+    { label: '시리얼', value: a.serial },
+    { label: '발매년도', value: a.year },
+    { label: '랙위치', value: a.rack },
+    { label: '메모', value: a.memo },
+  ].filter(i => i.value);
+
+  document.getElementById('modalInfo').innerHTML = info.map(i =>
+    `<div class="info-item"><label>${i.label}</label><span>${i.value}</span></div>`
+  ).join('');
+
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModalBtn();
+}
+
+function closeModalBtn() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+async function init() {
+  try {
+    allAlbums = await fetchAllAlbums();
+    document.getElementById('loadingEl').style.display = 'none';
+    document.getElementById('gallery').style.display = 'block';
+    document.getElementById('countBadge').textContent = allAlbums.length.toLocaleString();
+    renderGrid(allAlbums);
+  } catch (e) {
+    document.getElementById('loadingEl').innerHTML = '<div class="empty-icon">⚠️</div><div>불러오기 실패. 새로고침해주세요.</div>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
