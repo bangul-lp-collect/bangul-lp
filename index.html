@@ -324,7 +324,23 @@
       font-size: 12px;
       color: #666;
     }
-
+.modal-back {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: #333;
+  border: none;
+  color: #fff;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+}
     .pb { padding-bottom: 60px; }
   </style>
 </head>
@@ -369,7 +385,8 @@
 
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
-    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <button class="modal-back" onclick="closeModalBtn()">← 뒤로</button>
+    <button class="modal-close" onclick="closeModalBtn()">✕</button><button class="modal-close" onclick="closeModalBtn()">✕</button>
     <img class="modal-img" id="modalImg" src="" alt="">
     <div class="modal-title" id="modalTitle"></div>
     <div class="modal-artist" id="modalArtist"></div>
