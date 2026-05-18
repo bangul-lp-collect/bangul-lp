@@ -481,7 +481,7 @@ function getFiltered() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   return allAlbums.filter(a => {
     const matchGenre = currentGenre === '전체' || a.genre === currentGenre;
-    const matchSearch = !q || [a.title, a.composer, a.performer, a.orchestra, a.label]
+    const matchSearch = !q || [a.title, a.composer, a.performer, a.orchestra, a.label, a.conductor]
       .some(v => v && v.toLowerCase().includes(q));
     return matchGenre && matchSearch;
   });
