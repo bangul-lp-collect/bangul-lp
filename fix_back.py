@@ -1,45 +1,14 @@
 content = open('index.html').read()
-old = """    .modal-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: #333;
-      border: none;
-      color: #fff;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;"""
-new = """    .modal-back {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-      border: none;
-      color: #fff;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 200;
-    }
-    .modal-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-      border: none;
-      color: #fff;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;"""
-if old in content:
-    open('index.html', 'w').write(content.replace(old, new))
-    print('완료!')
-else:
-    print('못찾음')
+
+# 버튼 텍스트를 더 잘 보이는 화살표로 변경하고 스타일 조정
+old = '<button class="modal-back" onclick="closeModalBtn()">‹</button>'
+new = '<button class="modal-back" onclick="closeModalBtn()">←</button>'
+content = content.replace(old, new)
+
+# font-size와 정렬 수정
+old2 = '      font-size: 20px;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      font-weight: 200;'
+new2 = '      font-size: 15px;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      font-weight: 600;\n      line-height: 1;'
+content = content.replace(old2, new2)
+
+open('index.html', 'w').write(content)
+print('완료!')
