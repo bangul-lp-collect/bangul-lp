@@ -550,6 +550,7 @@ function openModal(a) {
   ).join('');
 
   document.getElementById('modalOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
 }
 
 // 스와이프로 모달 닫기
@@ -568,6 +569,7 @@ function closeModal(e) {
 
 function closeModalBtn() {
   document.getElementById('modalOverlay').classList.remove('show');
+  document.body.style.overflow = '';
 }
 
 async function init() {
