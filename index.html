@@ -393,7 +393,7 @@
 
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
-    <button class="modal-back" onclick="closeModalBtn()">←</button><button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
     <img class="modal-img" id="modalImg" src="" alt="">
     <div class="modal-title" id="modalTitle"></div>
     <div class="modal-artist" id="modalArtist"></div>
@@ -551,6 +551,16 @@ function openModal(a) {
 
   document.getElementById('modalOverlay').classList.add('show');
 }
+
+// 스와이프로 모달 닫기
+let touchStartY = 0;
+document.getElementById('modalOverlay').addEventListener('touchstart', e => {
+  touchStartY = e.touches[0].clientY;
+});
+document.getElementById('modalOverlay').addEventListener('touchend', e => {
+  const diff = e.changedTouches[0].clientY - touchStartY;
+  if (diff > 80) closeModalBtn();
+});
 
 function closeModal(e) {
   if (e.target === document.getElementById('modalOverlay')) closeModalBtn();
