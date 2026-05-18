@@ -78,6 +78,8 @@
     }
 
     .search-input::placeholder { color: #666; }
+    .search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #666; cursor: pointer; font-size: 16px; display: none; padding: 0; }
+    .search-clear.show { display: block; }
 
     /* 장르 탭 */
     .genre-tabs {
@@ -339,7 +341,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
     </svg>
-    <input class="search-input" type="text" placeholder="앨범, 아티스트 검색..." id="searchInput" oninput="filterAlbums()">
+    <input class="search-input" type="text" placeholder="앨범, 아티스트 검색..." id="searchInput" oninput="filterAlbums();toggleClear()"><button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
   </div>
 </div>
 
@@ -487,6 +489,8 @@ function getFiltered() {
   });
 }
 
+function clearSearch() { document.getElementById("searchInput").value = ""; document.getElementById("searchClear").classList.remove("show"); filterAlbums(); }
+function toggleClear() { const q = document.getElementById("searchInput").value; document.getElementById("searchClear").classList.toggle("show", q.length > 0); }
 function filterAlbums() {
   const filtered = getFiltered();
   document.getElementById('countBadge').textContent = filtered.length.toLocaleString();
