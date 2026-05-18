@@ -398,7 +398,7 @@ async function fetchAllAlbums() {
     const body = {
       database_id: NOTION_DB,
       page_size: 100,
-      sorts: [{ property: '분류번호', direction: 'ascending' }]
+      sorts: [{ property: '분류번호', direction: 'descending' }]
     };
     if (cursor) body.start_cursor = cursor;
 
